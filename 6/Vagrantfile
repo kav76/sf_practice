@@ -1,0 +1,29 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+$script = <<SCRIPT
+echo Provisioning...
+date > /etc/vagrant_provisioned_at
+SCRIPT
+
+Vagrant.configure("2") do |conf|
+  conf.vm.provider "virtualbox" do |vb|
+    vb.memory = "2048"
+  end
+  conf.vm.hostname = "php-backend"
+#  conf.vm.network "private_network", ip: "10.0.2.10"
+end
+
+Vagrant::Config.run do |config|
+  config.vm.box = "local_ubuntu"
+#  config.vm.share_folder "bootstrap", "/mnt/bootstrap", ".", :create => true
+#  config.vm.provision :shell, :path => "Vagrant-setup/bootstrap.sh"
+  config.vm.provision "shell", inline: $script
+
+  config.vm.provision "ansible" do |ansible|
+    ansible.playbook = "playbook.yml"
+    ansible.force_remote_user = "false"
+  end
+  # WEB Server port forwarding
+#  config.vm.forward_port 8888, 80
+end
